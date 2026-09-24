@@ -10,7 +10,6 @@ El diseño se ha realizado en VHDL utilizando Vivado e incluye simulación media
 
 [Ver el vídeo de demostración del sistema](https://drive.google.com/file/d/1C-ph-kSXQiD3uIve60K27gjJr0krNXgK/view?usp=sharing)
 
-El vídeo está alojado en Google Drive. Para que el enlace sea accesible, el archivo debe tener configurado el permiso «Cualquier persona con el enlace» como lector.
 
 ## Vista general
 
