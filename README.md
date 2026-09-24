@@ -10,6 +10,8 @@ El diseño se ha realizado en VHDL utilizando Vivado e incluye simulación media
 
 [Ver el vídeo de demostración del sistema](https://drive.google.com/file/d/1C-ph-kSXQiD3uIve60K27gjJr0krNXgK/view?usp=sharing)
 
+El vídeo está alojado en Google Drive. Para que el enlace sea accesible, el archivo debe tener configurado el permiso «Cualquier persona con el enlace» como lector.
+
 ## Vista general
 
 ![Presentación del sistema SAMEI](assets/Sistema%20de%20Alerta%20Multisensorial%20para%20Entornos%20Inclusivos%20(SAMEI).png)
@@ -155,10 +157,11 @@ project_final_26.xpr   proyecto de Vivado
 7. Ejecutar la síntesis y la implementación.
 8. Generar el bitstream y programar la FPGA.
 
+Antes de sintetizar desde un clon limpio conviene comprobar que todos los componentes instanciados por `sistema.vhd`, especialmente `relojes_tres`, están incluidos en el proyecto de Vivado.
 
 ## Contexto y autoría
 
-Proyecto académico realizado en equipo como parte de la asignatura PHR(programación hardware reconfigurable). Mario Reyes Morales actuó como responsable de coordinación del equipo. El trabajo se realizó de forma colaborativa, con una carga de trabajo aproximadamente equilibrada entre los participantes.
+Proyecto académico realizado en equipo como parte de la asignatura de Programación Hardware Reconfigurable. Mario Reyes Morales actuó como responsable de coordinación y liderazgo del equipo. El trabajo se realizó de forma colaborativa, con una carga de trabajo aproximadamente equilibrada entre los participantes.
 
 Participantes:
 
@@ -167,4 +170,4 @@ Participantes:
 - David Sanchez Sanchez
 - Lucas Rojas Tena
 
-
+Este repositorio contiene una copia preparada para mostrar la parte técnica del trabajo: el diseño en VHDL, la integración de los módulos, la simulación y la implementación sobre FPGA.
