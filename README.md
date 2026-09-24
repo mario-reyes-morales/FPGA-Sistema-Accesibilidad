@@ -10,6 +10,7 @@ El diseño se ha realizado en VHDL utilizando Vivado e incluye simulación media
 
 [Ver el vídeo de demostración del sistema](https://drive.google.com/file/d/1C-ph-kSXQiD3uIve60K27gjJr0krNXgK/view?usp=sharing)
 
+El vídeo está alojado en Google Drive. Para que el enlace sea accesible, el archivo debe tener configurado el permiso «Cualquier persona con el enlace» como lector.
 
 ## Vista general
 
@@ -17,36 +18,9 @@ El diseño se ha realizado en VHDL utilizando Vivado e incluye simulación media
 
 ## Funcionamiento
 
-El flujo principal del sistema es el siguiente:
+El sistema puede trabajar con sensores físicos o con señales generadas mediante interruptores de simulación. La selección se realiza mediante la entrada `modo_simulacion`.
 
-1. Se seleccionan las señales de los sensores físicos o las señales generadas mediante los interruptores de simulación.
-2. Las señales externas se sincronizan con el reloj de la FPGA.
-3. El pulsador se trata antes de utilizarlo en la lógica principal.
-4. El decodificador interpreta las entradas y genera un código de modo.
-5. El modo seleccionado se envía a los controladores de audio, LED RGB y VGA.
-6. Cada controlador genera la salida correspondiente a la situación detectada.
-
-La selección entre entradas físicas y simuladas se realiza mediante `modo_simulacion`.
-
-## Arquitectura
-
-```text
-Sensores físicos ───────┐
-                        ├── Selección de entrada
-Interruptores simulación┘
-                                  │
-                                  ▼
-                       Sincronización de señales
-                                  │
-Pulsador ───── Tratamiento ───────┤
-                                  ▼
-                       Decodificación del modo
-                         ┌────────┼────────┐
-                         ▼        ▼        ▼
-                      Buzzer   LED RGB    VGA
-```
-
-El módulo superior es `sistema.vhd`. Este módulo conecta los diferentes bloques y define el flujo de señales entre las entradas, la lógica de control y las salidas.
+Las señales de los sensores se sincronizan con el reloj de la FPGA antes de enviarse al decodificador. El pulsador también se trata mediante un módulo independiente. A partir de estas entradas, el sistema determina el modo de funcionamiento y envía la información a los controladores de audio, LED RGB y VGA.
 
 ## Módulos VHDL
 
@@ -185,14 +159,18 @@ project_final_26.xpr   proyecto de Vivado
 
 Antes de sintetizar desde un clon limpio conviene comprobar que todos los componentes instanciados por `sistema.vhd`, especialmente `relojes_tres`, están incluidos en el proyecto de Vivado.
 
-## Documentación adicional
-
-- [Memoria del sistema SAMEI](assets/Sistema%20de%20Alerta%20Multisensorial%20para%20Entornos%20Inclusivos%20(SAMEI).pdf)
-- [Vídeo de demostración](https://drive.google.com/file/d/1C-ph-kSXQiD3uIve60K27gjJr0krNXgK/view?usp=sharing)
-
 ## Contexto y autoría
 
-Proyecto académico realizado en equipo como parte de una asignatura de diseño digital. Este repositorio contiene una copia preparada para mostrar la parte técnica del trabajo: el diseño en VHDL, la integración de los módulos, la simulación y la implementación sobre FPGA.
+Proyecto académico realizado en equipo como parte de una asignatura de diseño digital. Mario Reyes Morales actuó como responsable de coordinación y liderazgo del equipo. El trabajo se realizó de forma colaborativa, con una carga de trabajo aproximadamente equilibrada entre los participantes.
+
+Participantes:
+
+- Mario Reyes Morales
+- Ruben Nuño Peña
+- David Sanchez Sanchez
+- Lucas Rojas Tena
+
+Este repositorio contiene una copia preparada para mostrar la parte técnica del trabajo: el diseño en VHDL, la integración de los módulos, la simulación y la implementación sobre FPGA.
 
 ## Mejoras posibles
 
