@@ -1,0 +1,204 @@
+# SAMEI: Sistema de Alerta Multisensorial para Entornos Inclusivos
+
+SAMEI es un sistema de alerta implementado sobre una FPGA. El sistema recibe señales procedentes de sensores o de interruptores de simulación y comunica el estado detectado mediante tres salidas: un altavoz, un LED RGB y una pantalla VGA.
+
+El objetivo del proyecto es ofrecer una señalización redundante. Una alerta no depende únicamente de la información visual o acústica, sino que puede representarse simultáneamente mediante sonido, color y texto o gráficos en pantalla.
+
+El diseño se ha realizado en VHDL utilizando Vivado e incluye simulación mediante un banco de pruebas.
+
+## Demostración
+
+[Ver el vídeo de demostración del sistema](https://drive.google.com/file/d/1C-ph-kSXQiD3uIve60K27gjJr0krNXgK/view?usp=sharing)
+
+El vídeo está alojado en Google Drive. Para que el enlace sea accesible, el archivo debe tener configurado el permiso «Cualquier persona con el enlace» como lector.
+
+## Vista general
+
+![Presentación del sistema SAMEI](assets/Sistema%20de%20Alerta%20Multisensorial%20para%20Entornos%20Inclusivos%20(SAMEI).png)
+
+## Funcionamiento
+
+El flujo principal del sistema es el siguiente:
+
+1. Se seleccionan las señales de los sensores físicos o las señales generadas mediante los interruptores de simulación.
+2. Las señales externas se sincronizan con el reloj de la FPGA.
+3. El pulsador se trata antes de utilizarlo en la lógica principal.
+4. El decodificador interpreta las entradas y genera un código de modo.
+5. El modo seleccionado se envía a los controladores de audio, LED RGB y VGA.
+6. Cada controlador genera la salida correspondiente a la situación detectada.
+
+La selección entre entradas físicas y simuladas se realiza mediante `modo_simulacion`.
+
+## Arquitectura
+
+```text
+Sensores físicos ───────┐
+                        ├── Selección de entrada
+Interruptores simulación┘
+                                  │
+                                  ▼
+                       Sincronización de señales
+                                  │
+Pulsador ───── Tratamiento ───────┤
+                                  ▼
+                       Decodificación del modo
+                         ┌────────┼────────┐
+                         ▼        ▼        ▼
+                      Buzzer   LED RGB    VGA
+```
+
+El módulo superior es `sistema.vhd`. Este módulo conecta los diferentes bloques y define el flujo de señales entre las entradas, la lógica de control y las salidas.
+
+## Módulos VHDL
+
+| Módulo | Responsabilidad |
+| --- | --- |
+| `sistema.vhd` | Módulo superior e integración del sistema. |
+| `button.vhd` | Tratamiento de la entrada del pulsador. |
+| `deco.vhd` | Decodificación de sensores y pulsador. |
+| `motor_universal.vhd` | Generación de ticks a partir del reloj principal. |
+| `clk_divider.vhd` | División de frecuencia. |
+| `buzzer_ctrl.vhd` | Generación de tonos y patrones acústicos. |
+| `rgb_ctrl.vhd` | Control del LED RGB según el modo seleccionado. |
+| `vga.vhd` | Adaptación del reloj y conexión del subsistema VGA. |
+| `vga_ctrl.vhd` | Control de la salida VGA. |
+| `vga_sync.vhd` | Generación de sincronismos horizontal y vertical. |
+| `vga_color_mapper.vhd` | Generación de los colores de la imagen. |
+| `vga_font_engine.vhd` | Generación de caracteres y mensajes. |
+| `test_sistema.vhd` | Banco de pruebas del sistema completo. |
+
+## Entradas y salidas
+
+### Entradas
+
+| Señal | Anchura | Descripción |
+| --- | ---: | --- |
+| `clk` | 1 bit | Reloj principal de la FPGA. |
+| `pulsador` | 1 bit | Activación manual de una alerta. |
+| `sensor` | 3 bits | Señales procedentes de los sensores físicos. |
+| `sw_sim` | 3 bits | Señales utilizadas en el modo de simulación. |
+| `modo_simulacion` | 1 bit | Selección entre entradas físicas y simuladas. |
+
+### Salidas
+
+| Señal | Anchura | Descripción |
+| --- | ---: | --- |
+| `altavoz` | 1 bit | Señal generada para el altavoz o buzzer. |
+| `led_rgb` | 3 bits | Control del LED RGB. |
+| `vgaRed` | 4 bits | Componente roja de la salida VGA. |
+| `vgaGreen` | 4 bits | Componente verde de la salida VGA. |
+| `vgaBlue` | 4 bits | Componente azul de la salida VGA. |
+| `Hsync` | 1 bit | Sincronismo horizontal de VGA. |
+| `Vsync` | 1 bit | Sincronismo vertical de VGA. |
+
+## Aspectos técnicos
+
+### Sincronización de entradas
+
+Las señales de los sensores proceden del exterior de la lógica sincronizada de la FPGA. Para evitar utilizar directamente una señal asíncrona en el resto del diseño, se emplean dos registros consecutivos:
+
+```vhdl
+if rising_edge(clk) then
+    sensor_sync_1 <= sensor_elegido;
+    sensor_sync_2 <= sensor_sync_1;
+end if;
+```
+
+Esta estructura reduce el riesgo de metastabilidad antes de que la señal llegue al decodificador.
+
+### Generación de frecuencias
+
+El reloj principal se utiliza para generar señales de menor frecuencia. Estas señales permiten controlar los patrones de parpadeo del LED y la intermitencia de las alarmas acústicas.
+
+El controlador del buzzer utiliza contadores para generar una onda cuadrada. El límite del contador cambia según el modo de alerta, produciendo tonos diferentes.
+
+### Salida VGA
+
+La salida VGA está dividida en varios bloques. `vga_sync.vhd` genera la temporización, los sincronismos y las coordenadas de los píxeles. `vga_color_mapper.vhd` determina el color que se muestra y `vga_font_engine.vhd` permite representar caracteres o mensajes.
+
+## Simulación y validación
+
+El banco de pruebas `test_sistema.vhd` genera un reloj de 10 ns y aplica una secuencia de estímulos al sistema:
+
+- Estado inicial de reposo.
+- Activación de una señal asociada al sensor de gas.
+- Activación de una señal asociada al sensor de inundación.
+- Cambio al modo de simulación.
+- Simulación de una señal de fuego mediante los interruptores.
+- Activación del pulsador manual.
+
+La simulación permite comprobar el comportamiento integrado del módulo `sistema` antes de programar la placa.
+
+## Material gráfico
+
+### Esquema lógico
+
+![Esquema lógico del sistema](assets/imagenes/Esquem%C3%A1tico.png)
+
+### Esquema físico
+
+![Esquema físico del montaje](assets/imagenes/ESQUEMA_FISICO.png)
+
+### Montaje físico
+
+![Montaje físico del sistema](assets/imagenes/IMAGEN_FISICO.jpg)
+
+### Otra vista del montaje
+
+![Vista adicional del sistema](assets/imagenes/v1.jpg)
+
+Las imágenes de gran tamaño se conservan como material de referencia, pero no se muestran todas en esta página para mantener una lectura cómoda.
+
+## Estructura del repositorio
+
+```text
+assets/
+  Sistema de Alerta Multisensorial para Entornos Inclusivos (SAMEI).pdf
+  Sistema de Alerta Multisensorial para Entornos Inclusivos (SAMEI).png
+  imagenes/
+    esquemas, fotografías y capturas del proyecto
+project_final_26.srcs/
+  sources_1/new/       código VHDL
+  sim_1/new/           banco de pruebas
+  constrs_1/           restricciones de pines
+project_final_26.xpr   proyecto de Vivado
+```
+
+## Cómo abrir el proyecto
+
+### Requisitos
+
+- AMD/Xilinx Vivado compatible con el proyecto.
+- La placa FPGA utilizada en la implementación.
+- Cable de programación.
+- Monitor VGA y los elementos externos utilizados durante la demostración.
+
+### Pasos
+
+1. Clonar el repositorio.
+2. Abrir `project_final_26.xpr` desde Vivado.
+3. Comprobar las fuentes situadas en `project_final_26.srcs/sources_1/new/`.
+4. Revisar las restricciones de `Basys3_Master.xdc` y adaptarlas a la placa si fuera necesario.
+5. Seleccionar `test_sistema.vhd` como entidad de simulación.
+6. Ejecutar la simulación.
+7. Ejecutar la síntesis y la implementación.
+8. Generar el bitstream y programar la FPGA.
+
+Antes de sintetizar desde un clon limpio conviene comprobar que todos los componentes instanciados por `sistema.vhd`, especialmente `relojes_tres`, están incluidos en el proyecto de Vivado.
+
+## Documentación adicional
+
+- [Memoria del sistema SAMEI](assets/Sistema%20de%20Alerta%20Multisensorial%20para%20Entornos%20Inclusivos%20(SAMEI).pdf)
+- [Vídeo de demostración](https://drive.google.com/file/d/1C-ph-kSXQiD3uIve60K27gjJr0krNXgK/view?usp=sharing)
+
+## Contexto y autoría
+
+Proyecto académico realizado en equipo como parte de una asignatura de diseño digital. Este repositorio contiene una copia preparada para mostrar la parte técnica del trabajo: el diseño en VHDL, la integración de los módulos, la simulación y la implementación sobre FPGA.
+
+## Mejoras posibles
+
+- Añadir aserciones automáticas al banco de pruebas.
+- Documentar la correspondencia exacta entre cada modo, sensor, color, tono y mensaje VGA.
+- Incluir los resultados de utilización de recursos y timing obtenidos en Vivado.
+- Añadir scripts para automatizar la simulación y la generación del bitstream.
+- Documentar con mayor detalle la placa y la asignación de pines utilizada.
